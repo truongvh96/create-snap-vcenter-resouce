@@ -1,0 +1,26 @@
+- name: Gather VM facts
+  community.vmware.vmware_vm_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: False
+  register: vm_info
+
+- name: Filter VMs by resource pool
+  set_fact:
+    filtered_vms: "{{ vm_info.virtual_machines | selectattr('resource_pool', 'eq', 'Sys-intern') | list }}"
+  when: vm_info is defined and vm_info.virtual_machines is defined
+
+- name: Create snapshot for filtered VMs
+  community.vmware.vmware_guest_snapshot:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ datacenter_name }}"
+    validate_certs: False
+    snapshot_name: "{{ snapshot_name }}"
+    folder: "{{ item.folder }}"
+    state: present
+    name: "{{ item.guest_name }}"
+  loop: "{{ filtered_vms }}"
+

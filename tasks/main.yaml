@@ -7,8 +7,14 @@
   register: vm_info
 
 - name: Filter VMs by resource pool
+  debug:
+    var: vm_info.virtual_machines
+
+- name: Filter VMs by resource pool
   set_fact:
-    filtered_vms: "{{ vm_info.virtual_machines | selectattr('resource_pool', 'eq', 'Sys-intern') | list }}"
+    filtered_vms: "{{ vm_info.virtual_machines | selectattr('resource_pool', 'eq', resource_pool ) | list }}"
+    vars:
+      resource_pool: "{{ resource_pool }}"
   when: vm_info is defined and vm_info.virtual_machines is defined
 
 - name: Create snapshot for filtered VMs
